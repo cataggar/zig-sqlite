@@ -3,8 +3,12 @@
     .name = .sqlite,
     .fingerprint = 0xb8bb86824e8a3876,
     .version = "0.4.0-3530100",
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.0",
     .dependencies = .{
+        .translate_c = .{
+            .url = "git+https://github.com/cataggar/translate-c#62d06a5d3e93c82727544e8113e4762a315ca0ed",
+            .hash = "translate_c-2.0.0-Q_BUWlpOBwBWvgGBM20tJq-GXgPio3v3UD39rXEn70KN",
+        },
         .sqlite_amalgamation = .{
             .url = "https://sqlite.org/2026/sqlite-amalgamation-3530100.zip",
             .hash = "N-V-__8AAK_4rQDqNybRFADVHf986hCbR9ln5ez1iWpmBV5L",

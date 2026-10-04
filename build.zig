@@ -1,4 +1,5 @@
 const std = @import("std");
+const Translator = @import("translate_c").Translator;
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -58,15 +59,14 @@ pub fn build(b: *std.Build) void {
 
     const sqlite_amalgamation = b.dependency("sqlite_amalgamation", .{});
 
-    // Translate sqlite3.h to a Zig module via the build system (replaces @cImport)
-    const translate_c = b.addTranslateC(.{
-        .root_source_file = sqlite_amalgamation.path("sqlite3.h"),
+    const translate_c: Translator = .init(b.dependency("translate_c", .{}), .{
+        .c_source_file = sqlite_amalgamation.path("sqlite3.h"),
         .target = target,
         .optimize = optimize,
         .link_libc = true,
     });
     translate_c.addIncludePath(sqlite_amalgamation.path("."));
-    const c_module = translate_c.createModule();
+    const c_module = translate_c.mod;
 
     const sqlite = b.addModule("sqlite", .{
         .root_source_file = b.path("src/sqlite.zig"),

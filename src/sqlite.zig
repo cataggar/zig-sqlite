@@ -120,8 +120,8 @@ pub fn Statement(comptime Params: type, comptime Result: type) type {
         const Self = @This();
 
         ptr: ?*c.sqlite3_stmt = null,
-        param_index_map: [param_count]c_int = .{placeholder} ** param_count,
-        column_index_map: [column_count]c_int = .{placeholder} ** column_count,
+        param_index_map: [param_count]c_int = @splat(placeholder),
+        column_index_map: [column_count]c_int = @splat(placeholder),
 
         pub fn prepare(db: Database, sql: []const u8) !Self {
             var stmt = Self{};
@@ -453,21 +453,31 @@ const Binding = struct {
         }
     };
 
-    field: std.builtin.Type.StructField,
+    const Field = struct {
+        name: [:0]const u8,
+        type: type,
+        default_value_ptr: ?*const anyopaque,
+    };
+
+    field: Field,
     type: Type,
     nullable: bool,
     default_value_ptr: ?*const anyopaque,
 
-    pub fn parseStruct(comptime info: std.builtin.Type.Struct) [info.fields.len]Binding {
-        var bindings: [info.fields.len]Binding = undefined;
-        inline for (info.fields, 0..) |field, i| {
-            bindings[i] = parseField(field);
+    pub fn parseStruct(comptime info: std.lang.Type.Struct) [info.field_names.len]Binding {
+        var bindings: [info.field_names.len]Binding = undefined;
+        inline for (info.field_names, info.field_types, info.field_attrs, 0..) |name, T, attrs, i| {
+            bindings[i] = parseField(.{
+                .name = name,
+                .type = T,
+                .default_value_ptr = attrs.default_value_ptr,
+            });
         }
 
         return bindings;
     }
 
-    pub fn parseField(comptime field: std.builtin.Type.StructField) Binding {
+    pub fn parseField(comptime field: Field) Binding {
         return switch (@typeInfo(field.type)) {
             .optional => |field_type| Binding{
                 .field = field,
